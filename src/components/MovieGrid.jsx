@@ -1,5 +1,6 @@
 import React from "react";
 import { Card, CardMedia, CardContent, Typography } from "@mui/material";
+import { useMovieModal } from "./MovieDetailsModal"; 
 
 const MovieGrid = ({ results, onMovieSelect }) => {
   return (

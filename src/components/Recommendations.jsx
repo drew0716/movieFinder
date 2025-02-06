@@ -44,7 +44,7 @@ const Recommendations = () => {
 
   return (
     <Container>
-      <BreadcrumbNav />
+      <BreadcrumbNav movieTitle={movieDetails?.title} />
       <Button variant="contained" onClick={() => navigate(-1)} sx={{ marginTop: 2 }}>
         Back
       </Button>

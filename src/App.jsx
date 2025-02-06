@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppBar, Toolbar, Typography, IconButton, Switch, Container } from "@mui/material";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import MovieFinder from "./components/MovieFinder";
@@ -30,13 +30,13 @@ const App = () => {
       </AppBar>
 
       {/* Main Page Content */}
-      <Container sx={{ marginTop: "80px", padding: 0 }}>
-        <Routes>
-          <Route path="/" element={<MovieFinder />} />
-          <Route path="/results" element={<ResultsPage />} />
-          <Route path="/recommendations/:id" element={<Recommendations />} />
-        </Routes>
-      </Container>
+        <Container sx={{ marginTop: "80px", padding: 0 }}>
+          <Routes>
+            <Route path="/" element={<MovieFinder />} />
+            <Route path="/results" element={<ResultsPage />} />
+            <Route path="/recommendations/:id" element={<Recommendations />} />
+          </Routes>
+        </Container>
     </div>
   );
 };

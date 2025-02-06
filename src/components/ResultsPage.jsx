@@ -39,7 +39,6 @@ const ResultsPage = () => {
   return (
     <Container>
       <BreadcrumbNav />
-      <SearchBar searchTerm={searchTerm} setSearchTerm={() => {}} handleSearch={(term) => navigate(`/results?query=${encodeURIComponent(term)}`)} />
       <Typography variant="h4" sx={{ marginBottom: 3, textAlign: "center" }}>
         Search Results for "{searchTerm}"
       </Typography>
