@@ -1,49 +1,47 @@
-import React, { useState, useEffect } from "react";
-import { Container, Typography, Box, useTheme } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Container, Typography, Box } from "@mui/material";
 import "../styles/movieFinder.scss";
 import SearchBar from "./SearchBar";
 import MovieSection from "./MovieSection";
 
-const API_KEY = process.env.REACT_APP_API_KEY;
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 const MovieFinder = () => {
-  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchCategory, setSearchCategory] = useState("multi");
-  const [popularMovies, setPopularMovies] = useState([]);
-  const [recentReleases, setRecentReleases] = useState([]);
-  const [topRated, setTopRated] = useState([]);
-  const navigate = useNavigate();
+  const [upcomingMovies, setUpcomingMovies] = useState([]);
+  const [page, setPage] = useState(1);
+  const observer = useRef();
+
+  const fetchUpcomingMovies = async (pageNum) => {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&region=US&sort_by=release_date.asc&release_date.gte=${today}&page=${pageNum}`);
+      const data = await response.json();
+      const filteredMovies = (data.results || []).filter(movie => new Date(movie.release_date) >= new Date());
+      setUpcomingMovies((prevMovies) => [...prevMovies, ...filteredMovies]);
+    } catch (error) {
+      console.error("Error fetching upcoming movies:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        const [popularRes, recentRes, topRatedRes] = await Promise.all([
-          fetch(`${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US&page=1`),
-          fetch(`${BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=en-US&page=1`),
-          fetch(`${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=en-US&page=1`)
-        ]);
-        const [popularData, recentData, topRatedData] = await Promise.all([
-          popularRes.json(),
-          recentRes.json(),
-          topRatedRes.json()
-        ]);
-        setPopularMovies((popularData.results || []).filter(movie => movie.poster_path));
-        setRecentReleases((recentData.results || []).filter(movie => movie.poster_path));
-        setTopRated((topRatedData.results || []).filter(movie => movie.poster_path));
-      } catch (error) {
-        console.error("Error fetching movie data:", error);
-      }
-    };
-    fetchMovies();
-  }, []);
+    fetchUpcomingMovies(page);
+  }, [page]);
 
-  const handleSearch = () => {
-    if (!searchTerm.trim()) return;
-    navigate(`/results?query=${encodeURIComponent(searchTerm)}&type=${searchCategory}`);
-  };
+  const lastMovieElementRef = useCallback(
+    (node) => {
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setPage((prevPage) => prevPage + 1);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    []
+  );
 
   return (
     <Container>
@@ -56,13 +54,10 @@ const MovieFinder = () => {
           <Typography variant="h6" className="hero-subtitle">
             Explore trending movies & TV shows. Search and discover your next favorite watch.
           </Typography>
-
-          {/* Search Box Section */}
           <Box sx={{ width: "100%", maxWidth: "800px", mt: 4 }}>
             <SearchBar 
               searchTerm={searchTerm} 
               setSearchTerm={setSearchTerm} 
-              handleSearch={handleSearch} 
               searchCategory={searchCategory} 
               setSearchCategory={setSearchCategory}
             />
@@ -70,15 +65,10 @@ const MovieFinder = () => {
         </Box>
       </Box>
 
-      {/* Movie Sections */}
+      {/* Upcoming Movies Section */}
       <Box className="movie-sections">
-        <Typography variant="h5" className="section-title">
-          🔥 Popular, Recent, and Top Rated
-        </Typography>
-
-        <MovieSection title="🎥 Popular Movies" movies={popularMovies} />
-        <MovieSection title="📅 Recent Releases" movies={recentReleases} />
-        <MovieSection title="⭐ Top Rated Movies" movies={topRated} />
+        <Typography variant="h5" className="section-title">📅 Upcoming Movies</Typography>
+        <MovieSection title="Upcoming Movies" movies={upcomingMovies} lastMovieRef={lastMovieElementRef} layoutStyle="detailed" />
       </Box>
     </Container>
   );

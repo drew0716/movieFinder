@@ -6,7 +6,7 @@ import "../styles/movieFinder.scss";
 import BreadcrumbNav from "./BreadcrumbNav";
 import CastList from "./CastList";
 
-const API_KEY = process.env.REACT_APP_API_KEY;
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 // Map streaming platforms to their correct URLs

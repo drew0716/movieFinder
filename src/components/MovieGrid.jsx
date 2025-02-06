@@ -25,7 +25,8 @@ const MovieGrid = ({ results }) => {
             {item.poster_path && (
               <CardMedia
                 component="img"
-                image={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
+                loading="lazy"
+                src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
                 alt={item.title || item.name}
               />
             )}

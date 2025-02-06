@@ -1,79 +1,60 @@
 import React from "react";
-import { Container, Grid, Card, CardMedia, CardContent, Typography, useTheme } from "@mui/material";
+import { Card, CardMedia, CardContent, Typography, Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-const MovieSection = ({ title, movies }) => {
+const placeholderImage = "https://via.placeholder.com/120x180?text=No+Image";
+
+const MovieSection = ({ title, movies, lastMovieRef, layoutStyle = "detailed" }) => {
   const navigate = useNavigate();
-  const theme = useTheme(); // Detects dark mode or light mode
 
   return (
-    <Container className="movie-section">
-      <Typography 
-        variant="h5" 
-        sx={{ 
-          marginBottom: 2, 
-          fontWeight: "bold",
-          color: theme.palette.mode === "dark" ? "#ffffff" : "#000000"
-        }}
-      >
-        {title}
-      </Typography>
-      <Grid container spacing={3}>
-        {movies.slice(0, 4).map(movie => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={movie.id}>
-            <Card 
-              onClick={() => navigate(`/recommendations/${movie.media_type || (movie.first_air_date ? 'tv' : 'movie')}/${movie.id}`)} 
-              sx={{ 
-                cursor: "pointer", 
-                borderRadius: "12px", 
-                boxShadow: theme.palette.mode === "dark" ? 5 : 3,
-                transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
-                "&:hover": { 
-                  transform: "scale(1.05)", 
-                  boxShadow: theme.palette.mode === "dark" ? 8 : 6
-                },
-                backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#ffffff",
-                color: theme.palette.mode === "dark" ? "#ffffff" : "#000000"
+    <div>
+      <Typography variant="h5" sx={{ marginBottom: 2, fontWeight: "bold" }}>{title}</Typography>
+      <Box>
+        {movies.map((movie, index) => {
+          const isLastMovie = index === movies.length - 1;
+          return (
+            <Card
+              key={movie.id}
+              ref={isLastMovie ? lastMovieRef : null}
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                width: "100%",
+                marginBottom: 2,
+                boxShadow: 3,
+                borderRadius: 2,
+                overflow: "hidden",
+                cursor: "pointer",
+                transition: "0.3s",
+                "&:hover": { boxShadow: 6 }
               }}
+              onClick={() => navigate(`/recommendations/movie/${movie.id}`)}
             >
+              {/* Movie Poster */}
               <CardMedia
                 component="img"
-                sx={{ 
-                  width: "100%", 
-                  height: 250, 
-                  borderRadius: "12px 12px 0 0",
-                  objectFit: "cover"
-                }}
-                image={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : "/no-image.jpg"}
-                alt={movie.title || movie.name}
+                sx={{ width: 120, height: "100%", objectFit: "cover" }}
+                image={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : placeholderImage}
+                alt={movie.title}
               />
-              <CardContent sx={{ padding: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  {movie.title || movie.name}
+
+              {/* Movie Details */}
+              <CardContent sx={{ flex: 1, padding: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: "bold" }}>{movie.title}</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {new Date(movie.release_date).toDateString()}
                 </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.mode === "dark" ? "#b0b0b0" : "gray" }}>
-                  {movie.release_date || movie.first_air_date}
-                </Typography>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    marginTop: 1, 
-                    overflow: "hidden", 
-                    textOverflow: "ellipsis", 
-                    display: "-webkit-box", 
-                    WebkitLineClamp: 2, 
-                    WebkitBoxOrient: "vertical",
-                    color: theme.palette.mode === "dark" ? "#cfcfcf" : "#4a4a4a"
-                  }}
-                >
+                <Typography variant="body2" sx={{ marginTop: 1 }}>
                   {movie.overview || "No description available."}
                 </Typography>
               </CardContent>
             </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Container>
+          );
+        })}
+      </Box>
+    </div>
   );
 };
 
