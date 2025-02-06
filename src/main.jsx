@@ -7,7 +7,7 @@ import "./index.scss"; // Import global styles only once
 const isProd = import.meta.env.MODE === "production";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-    <HashRouter basename={isProd ? "/movieFinder" : "/"}>
+    <HashRouter>
       <App />
     </HashRouter>
 );
