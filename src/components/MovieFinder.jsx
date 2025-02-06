@@ -54,7 +54,7 @@ const MovieFinder = () => {
           <Typography variant="h6" className="hero-subtitle">
             Explore trending movies & TV shows. Search and discover your next favorite watch.
           </Typography>
-          <Box sx={{ width: "100%", maxWidth: "800px", mt: 4 }}>
+          <Box sx={{ width: "100%", maxWidth: "800px", mt: 4, display: "flex", justifyContent: "center" }}>
             <SearchBar 
               searchTerm={searchTerm} 
               setSearchTerm={setSearchTerm} 

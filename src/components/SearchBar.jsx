@@ -68,8 +68,19 @@ const SearchBar = ({ searchTerm, setSearchTerm, searchCategory, setSearchCategor
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 2, width: "100%", maxWidth: 900 }}>
-      <FormControl variant="outlined" size="small" sx={{ minWidth: 130 }}>
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        display: "flex",
+        flexDirection: { xs: "column", sm: "row" },
+        gap: 2,
+        width: "100%",
+        maxWidth: 900,
+        alignItems: "center",
+      }}
+    >
+      <FormControl variant="outlined" size="small" sx={{ minWidth: { xs: "100%", sm: "150px" } }}>
         <InputLabel>Category</InputLabel>
         <Select
           value={searchCategory}
@@ -100,7 +111,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, searchCategory, setSearchCategor
         onInputChange={(event, newValue) => setSearchTerm(newValue)}
         onChange={handleAutocompleteSelect}
         inputValue={searchTerm}
-        sx={{ flexGrow: 1 }}
+        sx={{ width: "100%" }}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -114,7 +125,7 @@ const SearchBar = ({ searchTerm, setSearchTerm, searchCategory, setSearchCategor
       <Button
         type="submit"
         variant="contained"
-        sx={{ height: 40, px: 3 }}
+        sx={{ height: 40, px: 3, width: { xs: "100%", sm: "auto" } }}
       >
         <SearchIcon />
       </Button>
