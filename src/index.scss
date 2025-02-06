@@ -1,0 +1,54 @@
+// Reset global margins/padding
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Dark mode variables
+$dark-bg: #121212;
+$dark-text: #ffffff;
+$light-bg: #ffffff;
+$light-text: #000000;
+
+body {
+  font-family: Arial, sans-serif;
+  transition: background 0.3s ease-in-out;
+  
+  &.dark-mode {
+    background-color: $dark-bg;
+    color: $dark-text;
+  }
+
+  &.light-mode {
+    background-color: $light-bg;
+    color: $light-text;
+  }
+}
+
+// Ensure AppBar sticks to the top
+.MuiAppBar-root {
+  z-index: 1000;
+  position: fixed;
+  width: 100%;
+}
+
+// Page container should be positioned correctly under the AppBar
+.page-container {
+  margin-top: 80px; // Prevents content from overlapping with the AppBar
+  padding: 0;
+}
+
+// Search bar
+.search-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+// Ensure grid layout is centered
+.movie-masonry-grid {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
