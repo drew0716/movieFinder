@@ -6,7 +6,7 @@ const MovieGrid = ({ results }) => {
   const navigate = useNavigate();
 
   return (
-    <>
+    <> 
       {results.map((item) => (
         <div
           key={item.id}
