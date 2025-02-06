@@ -2,39 +2,42 @@ import React, { useState, useEffect } from "react";
 import { TextField, Autocomplete, MenuItem, Select, FormControl, InputLabel, Button, Box } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
-const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, searchCategory, setSearchCategory }) => {
+const SearchBar = ({ searchTerm, setSearchTerm, searchCategory, setSearchCategory }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [trendingResults, setTrendingResults] = useState([]);
+  const navigate = useNavigate();
 
-  // Fetch trending movies and TV shows for initial display
+  // Fetch trending content
   useEffect(() => {
     const fetchTrending = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/trending/${searchCategory === "multi" ? "all" : searchCategory}/week?api_key=${API_KEY}&language=en-US`);
+        const response = await axios.get(
+          `${BASE_URL}/trending/${searchCategory === "multi" ? "all" : searchCategory}/week?api_key=${API_KEY}`
+        );
         setTrendingResults(response.data.results || []);
       } catch (error) {
         console.error("Error fetching trending results:", error);
       }
     };
-
     fetchTrending();
-  }, [searchCategory]); // Re-fetch trending when category changes
+  }, [searchCategory]);
 
-  // Fetch autocomplete results based on search input and category
+  // Fetch search suggestions
   useEffect(() => {
     if (!searchTerm.trim()) {
-      setSearchResults(trendingResults); // Show trending when input is empty
+      setSearchResults(trendingResults);
       return;
     }
 
     const fetchSearchResults = async () => {
       try {
         const response = await axios.get(
-          `${BASE_URL}/search/${searchCategory}?api_key=${API_KEY}&language=en-US&query=${searchTerm}&page=1`
+          `${BASE_URL}/search/${searchCategory}?api_key=${API_KEY}&query=${encodeURIComponent(searchTerm)}`
         );
         setSearchResults(response.data.results || []);
       } catch (error) {
@@ -42,17 +45,31 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, searchCategory, se
       }
     };
 
-    const delayDebounceFn = setTimeout(() => {
-      fetchSearchResults();
-    }, 300); // Debounce API calls for better performance
-
+    const delayDebounceFn = setTimeout(fetchSearchResults, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, searchCategory, trendingResults]);
 
+  // Handle form submission
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const searchValue = searchTerm.trim();
+    if (!searchValue) return;
+    
+    navigate(`/results?query=${encodeURIComponent(searchValue)}&type=${searchCategory}`);
+  };
+
+  // Handle autocomplete selection
+  const handleAutocompleteSelect = (event, value) => {
+    if (value) {
+      const title = value.name || value.title;
+      setSearchTerm(title);
+      navigate(`/results?query=${encodeURIComponent(title)}&type=${searchCategory}`);
+    }
+  };
+
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", maxWidth: "900px", marginBottom: 3 }}>
-      {/* Category Selector */}
-      <FormControl variant="outlined" size="small" sx={{ minWidth: 130, marginRight: 2 }}>
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", gap: 2, width: "100%", maxWidth: 900 }}>
+      <FormControl variant="outlined" size="small" sx={{ minWidth: 130 }}>
         <InputLabel>Category</InputLabel>
         <Select
           value={searchCategory}
@@ -65,36 +82,39 @@ const SearchBar = ({ searchTerm, setSearchTerm, handleSearch, searchCategory, se
         </Select>
       </FormControl>
 
-      {/* Autocomplete Search Input */}
       <Autocomplete
         freeSolo
-        options={searchResults}
-        getOptionLabel={(option) => option.name || option.title || ""}
-        onInputChange={(event, newInputValue) => setSearchTerm(newInputValue)}
-        onChange={(event, newValue) => {
-          if (newValue) {
-            setSearchTerm(newValue.name || newValue.title);
-            handleSearch();
-          }
-        }}
+        options={searchTerm.trim() ? searchResults : [{ isHeader: true }, ...trendingResults]}
+        getOptionLabel={(option) => 
+          option.isHeader ? "Trending" : option.name || option.title || ""
+        }
+        renderOption={(props, option) => 
+          option.isHeader ? (
+            <li {...props} style={{ fontWeight: 'bold', background: '#f5f5f5' }}>
+              🔥 Trending
+            </li>
+          ) : (
+            <li {...props}>{option.name || option.title}</li>
+          )
+        }
+        onInputChange={(event, newValue) => setSearchTerm(newValue)}
+        onChange={handleAutocompleteSelect}
+        inputValue={searchTerm}
         sx={{ flexGrow: 1 }}
         renderInput={(params) => (
           <TextField
             {...params}
-            label={`Search ${searchCategory === "multi" ? "movies, TV shows..." : searchCategory === "movie" ? "movies..." : "TV shows..."}`}
+            label={`Search ${searchCategory !== "multi" ? searchCategory : "content"}...`}
             variant="outlined"
             size="small"
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
         )}
       />
 
-      {/* Search Button */}
-      <Button 
-        variant="contained" 
-        color="primary" 
-        sx={{ marginLeft: 2, height: "40px" }} 
-        onClick={handleSearch}
+      <Button
+        type="submit"
+        variant="contained"
+        sx={{ height: 40, px: 3 }}
       >
         <SearchIcon />
       </Button>

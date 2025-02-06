@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Container, Typography, Avatar, Card, CardContent, Modal, Box, Button, IconButton } from "@mui/material";
+import { Container, Typography, Avatar, Card, CardContent, Modal, Box, IconButton, Grid } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import "../styles/castList.scss";
@@ -11,7 +11,6 @@ const CastList = ({ mediaType, movieId }) => {
   const [cast, setCast] = useState([]);
   const [selectedCast, setSelectedCast] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [maskEnabled, setMaskEnabled] = useState(true); // Controls fade effect
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -40,113 +39,145 @@ const CastList = ({ mediaType, movieId }) => {
     }
   };
 
-  // Drag scrolling function
-  const handleMouseDown = (event) => {
-    if (scrollRef.current) {
-      scrollRef.current.style.cursor = "grabbing";
-      let startX = event.pageX - scrollRef.current.offsetLeft;
-      let scrollLeft = scrollRef.current.scrollLeft;
-
-      const onMouseMove = (e) => {
-        const x = e.pageX - scrollRef.current.offsetLeft;
-        const walk = (x - startX) * 2;
-        scrollRef.current.scrollLeft = scrollLeft - walk;
-      };
-
-      const onMouseUp = () => {
-        scrollRef.current.style.cursor = "grab";
-        window.removeEventListener("mousemove", onMouseMove);
-        window.removeEventListener("mouseup", onMouseUp);
-      };
-
-      window.addEventListener("mousemove", onMouseMove);
-      window.addEventListener("mouseup", onMouseUp);
-    }
-  };
-
-  // Update fade effect when scrolling
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      if (scrollLeft === 0 || scrollLeft + clientWidth >= scrollWidth) {
-        setMaskEnabled(false);
-      } else {
-        setMaskEnabled(true);
-      }
-    }
-  };
-
   return (
-    <Container style={{ marginTop: "16px" }}>
-      <Typography variant="h5" style={{ marginBottom: "16px" }}>Top Cast</Typography>
+    <Container sx={{ marginTop: "32px" }}>
+      <Typography variant="h5" fontWeight="bold" sx={{ marginBottom: "16px" }}>
+        Top Cast
+      </Typography>
 
       {/* Horizontal Scrollable Cast List */}
-      <div 
+      <Box
         className="cast-scroll-container"
         ref={scrollRef}
-        onMouseDown={handleMouseDown}
-        onScroll={handleScroll}
-        style={{
-          maskImage: maskEnabled
-            ? "linear-gradient(90deg, transparent, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 90%, transparent)"
-            : "none",
-          WebkitMaskImage: maskEnabled
-            ? "linear-gradient(90deg, transparent, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 90%, transparent)"
-            : "none",
+        sx={{
+          display: "flex",
+          gap: "16px",
+          overflowX: "auto",
+          paddingBottom: "8px",
+          "&::-webkit-scrollbar": { height: "6px" },
+          "&::-webkit-scrollbar-thumb": { backgroundColor: "#aaa", borderRadius: "4px" },
+          "&::-webkit-scrollbar-track": { backgroundColor: "#ddd" },
         }}
       >
         {cast.length > 0 ? (
           cast.map((actor) => (
-            <Card 
-              key={actor.id} 
-              className="cast-card" 
+            <Card
+              key={actor.id}
+              className="cast-card"
               onClick={() => fetchPersonDetails(actor.id)}
-              tabIndex="0" // Makes it tabbable for accessibility
+              tabIndex="0"
               role="button"
               aria-label={`View details for ${actor.name} as ${actor.character}`}
+              sx={{
+                minWidth: "160px", // ✅ Slightly larger width
+                maxWidth: "180px",
+                textAlign: "center",
+                transition: "transform 0.2s ease-in-out",
+                cursor: "pointer",
+                borderRadius: "12px",
+                boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)",
+                backgroundColor: "#fff",
+                "&:hover": { transform: "scale(1.05)", boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)" },
+              }}
             >
               <Avatar
                 src={actor.profile_path ? `https://image.tmdb.org/t/p/w200${actor.profile_path}` : "/default-avatar.png"}
-                className="cast-avatar"
+                sx={{
+                  width: "100%",
+                  height: "auto",
+                  borderRadius: "12px 12px 0 0", // ✅ Image takes full width of the card
+                }}
               />
-              <CardContent className="cast-content">
-                <Typography variant="body1" className="cast-name"><strong>{actor.name}</strong></Typography>
-                <Typography variant="body2" className="cast-role">{actor.character}</Typography>
+              <CardContent sx={{ padding: "10px", textAlign: "center" }}>
+                <Typography
+                  variant="body1"
+                  fontWeight="bold"
+                  sx={{
+                    whiteSpace: "normal", // ✅ Allows wrapping for long names
+                    wordBreak: "break-word",
+                    fontSize: "14px",
+                    lineHeight: "1.2",
+                  }}
+                >
+                  {actor.name}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  sx={{
+                    whiteSpace: "normal", // ✅ Allows wrapping for character names
+                    wordBreak: "break-word",
+                    fontSize: "12px",
+                  }}
+                >
+                  {actor.character}
+                </Typography>
               </CardContent>
             </Card>
           ))
         ) : (
           <Typography variant="body1">No cast information available.</Typography>
         )}
-      </div>
+      </Box>
 
       {/* Modal for displaying detailed cast information */}
       <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <Box 
+        <Box
           sx={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: "75vw",
-            maxHeight: "80vh",
+            width: { xs: "90vw", sm: "75vw" },
+            maxHeight: "85vh",
             overflowY: "auto",
             bgcolor: "background.paper",
             boxShadow: 24,
             p: 4,
-            borderRadius: "10px",
+            borderRadius: "12px",
             outline: "none",
           }}
         >
-          <IconButton onClick={() => setIsModalOpen(false)} sx={{ position: "absolute", top: 8, right: 8, color: "gray" }}>
+          <IconButton
+            onClick={() => setIsModalOpen(false)}
+            sx={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              color: "gray",
+              backgroundColor: "rgba(0, 0, 0, 0.1)",
+              "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.2)" },
+            }}
+          >
             <CloseIcon />
           </IconButton>
 
           {selectedCast && (
-            <>
-              <Typography variant="h4" gutterBottom>{selectedCast.name}</Typography>
-              <Typography variant="body1">{selectedCast.biography || "No biography available."}</Typography>
-            </>
+            <Grid container spacing={3} alignItems="center">
+              {/* Cast Member Image */}
+              <Grid item xs={12} sm={4}>
+                <Avatar
+                  src={selectedCast.profile_path ? `https://image.tmdb.org/t/p/w300${selectedCast.profile_path}` : "/default-avatar.png"}
+                  sx={{ width: "100%", height: "auto", borderRadius: "12px" }}
+                />
+              </Grid>
+
+              {/* Cast Member Details */}
+              <Grid item xs={12} sm={8}>
+                <Typography variant="h4" fontWeight="bold" gutterBottom>
+                  {selectedCast.name}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  <strong>Born:</strong> {selectedCast.birthday || "Unknown"}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  <strong>Place of Birth:</strong> {selectedCast.place_of_birth || "Unknown"}
+                </Typography>
+                <Typography variant="body1" sx={{ marginTop: 2 }}>
+                  {selectedCast.biography || "No biography available."}
+                </Typography>
+              </Grid>
+            </Grid>
           )}
         </Box>
       </Modal>
