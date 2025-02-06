@@ -5,25 +5,35 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 const BreadcrumbNav = ({ movieTitle }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const queryParams = new URLSearchParams(location.search);
-  const searchTerm = queryParams.get("query") || "";
+  const { media_type } = useParams();
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
   return (
     <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: 2, display: 'flex', alignItems: 'center' }} separator="/">
-      <Link color="inherit" onClick={() => navigate("/")} sx={{ cursor: "pointer" }}>
+      <Link 
+        color="inherit" 
+        onClick={() => navigate("/")} 
+        sx={{ cursor: "pointer" }}
+        tabIndex={0}
+        role="button"
+        onKeyDown={(e) => e.key === "Enter" && navigate("/")}
+      >
         Home
       </Link>
-      {pathSegments.includes("results") && searchTerm && (
-        <Typography color="textPrimary">Search Results for "{searchTerm}"</Typography>
-      )}
       {pathSegments.includes("recommendations") && movieTitle && (
-        <Link color="inherit" onClick={() => navigate(-1)} sx={{ cursor: "pointer" }}>
-          {movieTitle}
+        <Link 
+          color="inherit" 
+          onClick={() => navigate(`/results?query=${encodeURIComponent(movieTitle)}`)} 
+          sx={{ cursor: "pointer" }}
+          tabIndex={0}
+          role="button"
+          onKeyDown={(e) => e.key === "Enter" && navigate(`/results?query=${encodeURIComponent(movieTitle)}`)}
+        >
+          {movieTitle} {media_type === "tv" ? "(TV Show)" : "(Movie)"}
         </Link>
       )}
       {pathSegments.includes("recommendations") && (
-        <Typography color="textPrimary">Movie Info & Recommendations</Typography>
+        <Typography color="textPrimary" tabIndex={0} aria-current="page">Recommendations</Typography>
       )}
     </Breadcrumbs>
   );

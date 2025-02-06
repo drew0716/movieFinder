@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Container, Typography, Dialog, DialogTitle, DialogContent, Button, Card, CardMedia, Grid, Link } from "@mui/material";
+import { Container, Typography, Button, Card, CardMedia, CardContent, Link, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import Masonry from "react-masonry-css";
 import { useNavigate, useParams } from "react-router-dom";
 import "../styles/movieFinder.scss";
-import SearchBar from "./SearchBar";
-import MovieGrid from "./MovieGrid";
 import BreadcrumbNav from "./BreadcrumbNav";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 const Recommendations = () => {
-  const { id } = useParams();
+  const { media_type, id } = useParams();
   const [movieDetails, setMovieDetails] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
-  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [filter, setFilter] = useState("all");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMovieDetails = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/movie/${id}?api_key=${API_KEY}&language=en-US&append_to_response=watch/providers`);
+        const response = await fetch(`${BASE_URL}/${media_type}/${id}?api_key=${API_KEY}&language=en-US&append_to_response=watch/providers`);
         const data = await response.json();
         setMovieDetails(data);
       } catch (error) {
@@ -30,9 +28,23 @@ const Recommendations = () => {
 
     const fetchRecommendations = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/movie/${id}/recommendations?api_key=${API_KEY}&language=en-US`);
-        const data = await response.json();
-        setRecommendations((data.results || []).filter(movie => movie.poster_path));
+        const [movieResponse, tvResponse] = await Promise.all([
+          fetch(`${BASE_URL}/movie/${id}/recommendations?api_key=${API_KEY}&language=en-US`),
+          fetch(`${BASE_URL}/tv/${id}/recommendations?api_key=${API_KEY}&language=en-US`)
+        ]);
+        
+        const [movieData, tvData] = await Promise.all([
+          movieResponse.json(),
+          tvResponse.json()
+        ]);
+        
+        const combinedResults = [
+          ...(movieData.results || []).map(item => ({ ...item, media_type: "movie" })),
+          ...(tvData.results || []).map(item => ({ ...item, media_type: "tv" }))
+        ].filter(item => item.poster_path)
+         .sort((a, b) => b.popularity - a.popularity); // Sorting by relevance/popularity
+        
+        setRecommendations(combinedResults);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
       }
@@ -40,11 +52,21 @@ const Recommendations = () => {
 
     fetchMovieDetails();
     fetchRecommendations();
-  }, [id]);
+  }, [id, media_type]);
+
+  const handleFilterChange = (event, newFilter) => {
+    if (newFilter !== null) {
+      setFilter(newFilter);
+    }
+  };
+
+  const filteredRecommendations = recommendations.filter(movie => 
+    filter === "all" || movie.media_type === filter
+  );
 
   return (
     <Container>
-      <BreadcrumbNav movieTitle={movieDetails?.title} />
+      <BreadcrumbNav movieTitle={movieDetails?.title || movieDetails?.name} />
       <Button variant="contained" onClick={() => navigate(-1)} sx={{ marginTop: 2 }}>
         Back
       </Button>
@@ -56,13 +78,13 @@ const Recommendations = () => {
               component="img"
               sx={{ width: 200, height: "auto", borderRadius: 2 }}
               image={`https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`}
-              alt={movieDetails.title}
+              alt={movieDetails.title || movieDetails.name}
             />
           )}
           <div style={{ paddingLeft: 20 }}>
-            <Typography variant="h4">{movieDetails.title}</Typography>
+            <Typography variant="h4">{movieDetails.title || movieDetails.name}</Typography>
             <Typography variant="body1" sx={{ marginTop: 1 }}>{movieDetails.overview}</Typography>
-            <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Release Date:</strong> {movieDetails.release_date}</Typography>
+            <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Release Date:</strong> {movieDetails.release_date || movieDetails.first_air_date}</Typography>
             <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Genres:</strong> {movieDetails.genres?.map(g => g.name).join(", ")}</Typography>
             {movieDetails.homepage && (
               <Typography variant="body2" sx={{ marginTop: 1 }}>
@@ -78,44 +100,42 @@ const Recommendations = () => {
         </Card>
       )}
 
-      <Typography variant="h4" sx={{ marginTop: 4 }}>Recommended Movies</Typography>
+      <Typography variant="h4" sx={{ marginTop: 4 }}>Recommended Movies & TV Shows</Typography>
+      <ToggleButtonGroup
+        value={filter}
+        exclusive
+        onChange={handleFilterChange}
+        aria-label="media filter"
+        sx={{ marginBottom: 2 }}
+      >
+        <ToggleButton value="all" aria-label="show all">All</ToggleButton>
+        <ToggleButton value="movie" aria-label="show movies">Movies</ToggleButton>
+        <ToggleButton value="tv" aria-label="show tv shows">TV Shows</ToggleButton>
+      </ToggleButtonGroup>
+      
       <Masonry
         breakpointCols={{ default: 6, 1200: 6, 900: 4, 600: 2, 400: 1 }}
         className="movie-masonry-grid"
         columnClassName="movie-masonry-column"
       >
-        {recommendations.map((movie) => (
-          <MovieGrid key={movie.id} results={[movie]} navigate={navigate} onMovieSelect={setSelectedMovie} />
+        {filteredRecommendations.map((movie) => (
+          <div key={movie.id} className="movie-masonry-item">
+            <Card onClick={() => navigate(`/recommendations/${movie.media_type}/${movie.id}`)} sx={{ cursor: "pointer" }}>
+              <CardMedia
+                component="img"
+                image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                alt={movie.title || movie.name}
+              />
+              <CardContent>
+                <Typography variant="h6">{movie.title || movie.name}</Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {movie.release_date || movie.first_air_date} ({movie.media_type === "tv" ? "TV Show" : "Movie"})
+                </Typography>
+              </CardContent>
+            </Card>
+          </div>
         ))}
       </Masonry>
-
-      {/* Movie Details Modal */}
-      <Dialog open={Boolean(selectedMovie)} onClose={() => setSelectedMovie(null)} fullWidth>
-        {selectedMovie && (
-          <>
-            <DialogTitle>{selectedMovie.title || selectedMovie.name}</DialogTitle>
-            <DialogContent>
-              {selectedMovie.poster_path && (
-                <CardMedia
-                  component="img"
-                  style={{ width: "100%", height: "auto" }}
-                  image={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
-                  alt={selectedMovie.title || selectedMovie.name}
-                />
-              )}
-              <Typography variant="body1" sx={{ marginTop: 2 }}>{selectedMovie.overview}</Typography>
-              <Button 
-                variant="contained" 
-                color="secondary" 
-                sx={{ marginTop: 2 }} 
-                onClick={() => navigate(`/recommendations/${selectedMovie.id}`)}
-              >
-                View Similar
-              </Button>
-            </DialogContent>
-          </>
-        )}
-      </Dialog>
     </Container>
   );
 };

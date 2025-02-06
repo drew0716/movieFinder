@@ -1,12 +1,26 @@
 import React from "react";
 import { Card, CardMedia, CardContent, Typography } from "@mui/material";
-import { useMovieModal } from "./MovieDetailsModal"; 
+import { useNavigate } from "react-router-dom";
 
-const MovieGrid = ({ results, onMovieSelect }) => {
+const MovieGrid = ({ results }) => {
+  const navigate = useNavigate();
+
   return (
     <>
       {results.map((item) => (
-        <div key={item.id} className="movie-masonry-item" onClick={() => onMovieSelect(item)}>
+        <div
+          key={item.id}
+          className="movie-masonry-item"
+          tabIndex={0}
+          role="button"
+          onClick={() => navigate(`/recommendations/${item.media_type || (item.first_air_date ? 'tv' : 'movie')}/${item.id}`)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              navigate(`/recommendations/${item.media_type || (item.first_air_date ? 'tv' : 'movie')}/${item.id}`);
+            }
+          }}
+          style={{ cursor: "pointer" }}
+        >
           <Card className="movie-card">
             {item.poster_path && (
               <CardMedia
@@ -19,9 +33,6 @@ const MovieGrid = ({ results, onMovieSelect }) => {
               <Typography variant="h6">{item.title || item.name}</Typography>
               <Typography variant="body2" color="textSecondary">
                 {item.release_date || item.first_air_date}
-              </Typography>
-              <Typography variant="caption" sx={{ fontStyle: "italic", color: "gray" }}>
-                {item.media_type === "movie" ? "Movie" : item.media_type === "tv" ? "TV Show" : ""}
               </Typography>
             </CardContent>
           </Card>

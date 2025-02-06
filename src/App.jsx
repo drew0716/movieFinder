@@ -34,7 +34,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<MovieFinder />} />
             <Route path="/results" element={<ResultsPage />} />
-            <Route path="/recommendations/:id" element={<Recommendations />} />
+            <Route path="/recommendations/:media_type/:id" element={<Recommendations />} />
           </Routes>
         </Container>
     </div>
