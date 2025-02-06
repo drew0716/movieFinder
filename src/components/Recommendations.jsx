@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Container, Typography, Button, Card, CardMedia, CardContent, Link, ToggleButton, ToggleButtonGroup } from "@mui/material";
+import { Container, Typography, Button, Card, CardMedia, CardContent, Link, ToggleButton, ToggleButtonGroup, Badge } from "@mui/material";
 import Masonry from "react-masonry-css";
 import { useNavigate, useParams } from "react-router-dom";
 import "../styles/movieFinder.scss";
 import BreadcrumbNav from "./BreadcrumbNav";
+import CastList from "./CastList"; // ✅ Import the new CastList component
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
@@ -42,7 +43,7 @@ const Recommendations = () => {
           ...(movieData.results || []).map(item => ({ ...item, media_type: "movie" })),
           ...(tvData.results || []).map(item => ({ ...item, media_type: "tv" }))
         ].filter(item => item.poster_path)
-         .sort((a, b) => b.popularity - a.popularity); // Sorting by relevance/popularity
+         .sort((a, b) => b.popularity - a.popularity);
         
         setRecommendations(combinedResults);
       } catch (error) {
@@ -72,35 +73,36 @@ const Recommendations = () => {
       </Button>
 
       {movieDetails && (
-        <Card className="movie-details-card" sx={{ display: 'flex', marginTop: 4, padding: 2 }}>
-          {movieDetails.poster_path && (
-            <CardMedia
-              component="img"
-              sx={{ width: 200, height: "auto", borderRadius: 2 }}
-              image={`https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`}
-              alt={movieDetails.title || movieDetails.name}
-            />
-          )}
-          <div style={{ paddingLeft: 20 }}>
-            <Typography variant="h4">{movieDetails.title || movieDetails.name}</Typography>
-            <Typography variant="body1" sx={{ marginTop: 1 }}>{movieDetails.overview}</Typography>
-            <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Release Date:</strong> {movieDetails.release_date || movieDetails.first_air_date}</Typography>
-            <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Genres:</strong> {movieDetails.genres?.map(g => g.name).join(", ")}</Typography>
-            {movieDetails.homepage && (
-              <Typography variant="body2" sx={{ marginTop: 1 }}>
-                <Link href={movieDetails.homepage} target="_blank" rel="noopener">Official Website</Link>
-              </Typography>
+        <>
+          <Card className="movie-details-card" sx={{ display: 'flex', marginTop: 4, padding: 2 }}>
+            {movieDetails.poster_path && (
+              <CardMedia
+                component="img"
+                sx={{ width: 200, height: "auto", borderRadius: 2 }}
+                image={`https://image.tmdb.org/t/p/w500${movieDetails.poster_path}`}
+                alt={movieDetails.title || movieDetails.name}
+              />
             )}
-            {movieDetails["watch/providers"]?.results?.US?.flatrate && (
-              <Typography variant="body2" sx={{ marginTop: 1 }}>
-                <strong>Where to Watch:</strong> {movieDetails["watch/providers"].results.US.flatrate.map(p => p.provider_name).join(", ")}
-              </Typography>
-            )}
-          </div>
-        </Card>
+            <div style={{ paddingLeft: 20 }}>
+              <Typography variant="h4">{movieDetails.title || movieDetails.name}</Typography>
+              <Typography variant="body1" sx={{ marginTop: 1 }}>{movieDetails.overview}</Typography>
+              <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Release Date:</strong> {movieDetails.release_date || movieDetails.first_air_date}</Typography>
+              <Typography variant="body2" sx={{ marginTop: 1 }}><strong>Genres:</strong> {movieDetails.genres?.map(g => g.name).join(", ")}</Typography>
+              {movieDetails.homepage && (
+                <Typography variant="body2" sx={{ marginTop: 1 }}>
+                  <Link href={movieDetails.homepage} target="_blank" rel="noopener">Official Website</Link>
+                </Typography>
+              )}
+            </div>
+          </Card>
+
+          {/* ✅ New CastList Component */}
+          <CastList mediaType={media_type} movieId={id} />
+        </>
       )}
 
-      <Typography variant="h4" sx={{ marginTop: 4 }}>Recommended Movies & TV Shows</Typography>
+      <Typography variant="h4" sx={{ marginTop: 4 }}>Similar Titles</Typography>
+      <Typography variant="h6" sx={{ marginBottom: 2 }}>Results Found: {filteredRecommendations.length}</Typography>
       <ToggleButtonGroup
         value={filter}
         exclusive
@@ -120,19 +122,21 @@ const Recommendations = () => {
       >
         {filteredRecommendations.map((movie) => (
           <div key={movie.id} className="movie-masonry-item">
-            <Card onClick={() => navigate(`/recommendations/${movie.media_type}/${movie.id}`)} sx={{ cursor: "pointer" }}>
-              <CardMedia
-                component="img"
-                image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                alt={movie.title || movie.name}
-              />
-              <CardContent>
-                <Typography variant="h6">{movie.title || movie.name}</Typography>
-                <Typography variant="body2" color="textSecondary">
-                  {movie.release_date || movie.first_air_date} ({movie.media_type === "tv" ? "TV Show" : "Movie"})
-                </Typography>
-              </CardContent>
-            </Card>
+            <Badge badgeContent={Math.round(movie.popularity)} color="secondary">
+              <Card onClick={() => navigate(`/recommendations/${movie.media_type}/${movie.id}`)} sx={{ cursor: "pointer" }}>
+                <CardMedia
+                  component="img"
+                  image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                  alt={movie.title || movie.name}
+                />
+                <CardContent>
+                  <Typography variant="h6">{movie.title || movie.name}</Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    {movie.release_date || movie.first_air_date} ({movie.media_type === "tv" ? "TV Show" : "Movie"})
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Badge>
           </div>
         ))}
       </Masonry>

@@ -15,6 +15,7 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("query") || "";
+  const searchType = queryParams.get("type") || "multi"; // Default to "All"
   const [results, setResults] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
 
@@ -24,35 +25,44 @@ const ResultsPage = () => {
     const fetchSearchResults = async () => {
       try {
         const response = await fetch(
-          `${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(searchTerm)}&language=en`
+          `${BASE_URL}/search/${searchType}?api_key=${API_KEY}&query=${encodeURIComponent(searchTerm)}&language=en-US`
         );
         const data = await response.json();
-        setResults((data.results || []).filter(movie => movie.poster_path));
+        setResults((data.results || []).filter(item => item.poster_path));
       } catch (error) {
         console.error("Error fetching search results:", error);
       }
     };
 
     fetchSearchResults();
-  }, [searchTerm]);
+  }, [searchTerm, searchType]);
 
   return (
     <Container>
       <BreadcrumbNav />
-      <Typography variant="h4" sx={{ marginBottom: 3, textAlign: "center" }}>
-        Search Results for "{searchTerm}"
-      </Typography>
       
+      {/* Search Header */}
+      <Typography variant="h4" sx={{ marginBottom: 3, textAlign: "center" }}>
+        Search Results for "{searchTerm}" ({searchType === "multi" ? "All" : searchType === "movie" ? "Movies" : "TV Shows"})
+      </Typography>
+
+      {/* Results Masonry Grid */}
       <Masonry
         breakpointCols={{ default: 6, 1200: 6, 900: 4, 600: 2, 400: 1 }}
         className="movie-masonry-grid"
         columnClassName="movie-masonry-column"
       >
-        {results.map((movie) => (
-          <MovieGrid key={movie.id} results={[movie]} navigate={navigate} onMovieSelect={setSelectedMovie} />
-        ))}
+        {results.length > 0 ? (
+          results.map((movie) => (
+            <MovieGrid key={movie.id} results={[movie]} navigate={navigate} onMovieSelect={setSelectedMovie} />
+          ))
+        ) : (
+          <Typography variant="h6" sx={{ textAlign: "center", width: "100%", marginTop: 3 }}>
+            No results found for "{searchTerm}".
+          </Typography>
+        )}
       </Masonry>
-      
+
       {/* Movie Details Modal */}
       <Dialog open={Boolean(selectedMovie)} onClose={() => setSelectedMovie(null)} fullWidth>
         {selectedMovie && (
@@ -72,7 +82,7 @@ const ResultsPage = () => {
                 variant="contained" 
                 color="secondary" 
                 sx={{ marginTop: 2 }} 
-                onClick={() => navigate(`/recommendations/${selectedMovie.id}`)}
+                onClick={() => navigate(`/recommendations/${selectedMovie.media_type}/${selectedMovie.id}`)}
               >
                 View Similar
               </Button>

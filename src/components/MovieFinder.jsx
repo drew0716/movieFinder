@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Typography } from "@mui/material";
+import { Container, Typography, Box, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import "../styles/movieFinder.scss";
 import SearchBar from "./SearchBar";
@@ -9,7 +9,9 @@ const API_KEY = process.env.REACT_APP_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 const MovieFinder = () => {
+  const theme = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchCategory, setSearchCategory] = useState("multi");
   const [popularMovies, setPopularMovies] = useState([]);
   const [recentReleases, setRecentReleases] = useState([]);
   const [topRated, setTopRated] = useState([]);
@@ -40,29 +42,44 @@ const MovieFinder = () => {
 
   const handleSearch = () => {
     if (!searchTerm.trim()) return;
-    navigate(`/results?query=${encodeURIComponent(searchTerm)}`);
+    navigate(`/results?query=${encodeURIComponent(searchTerm)}&type=${searchCategory}`);
   };
 
   return (
     <Container>
-      <SearchBar 
-        searchTerm={searchTerm} 
-        setSearchTerm={setSearchTerm} 
-        handleSearch={handleSearch} 
-      />
-      
-      <Typography variant="h4" sx={{ marginBottom: 3, textAlign: "center" }}>
-        Welcome to MovieFinder
-      </Typography>
-      <Typography variant="body1" sx={{ marginBottom: 5, textAlign: "center" }}>
-        Search for movies, TV shows, and actors. Browse popular, recent, and top-rated movies below.
-      </Typography>
-      
-      <Container className="movie-section">
-        <MovieSection title="Popular Movies" movies={popularMovies} />
-        <MovieSection title="Recent Releases" movies={recentReleases} />
-        <MovieSection title="Top Rated Movies" movies={topRated} />
-      </Container>
+      {/* Hero Section with Animated CSS Background */}
+      <Box className="hero-section">
+        <Box className="hero-overlay">
+          <Typography variant="h3" className="hero-title">
+            Welcome to MovieFinder 🎬
+          </Typography>
+          <Typography variant="h6" className="hero-subtitle">
+            Explore trending movies & TV shows. Search and discover your next favorite watch.
+          </Typography>
+
+          {/* Search Box Section */}
+          <Box sx={{ width: "100%", maxWidth: "800px", mt: 4 }}>
+            <SearchBar 
+              searchTerm={searchTerm} 
+              setSearchTerm={setSearchTerm} 
+              handleSearch={handleSearch} 
+              searchCategory={searchCategory} 
+              setSearchCategory={setSearchCategory}
+            />
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Movie Sections */}
+      <Box className="movie-sections">
+        <Typography variant="h5" className="section-title">
+          🔥 Popular, Recent, and Top Rated
+        </Typography>
+
+        <MovieSection title="🎥 Popular Movies" movies={popularMovies} />
+        <MovieSection title="📅 Recent Releases" movies={recentReleases} />
+        <MovieSection title="⭐ Top Rated Movies" movies={topRated} />
+      </Box>
     </Container>
   );
 };

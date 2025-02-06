@@ -6,10 +6,14 @@ const BreadcrumbNav = ({ movieTitle }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { media_type } = useParams();
+  const queryParams = new URLSearchParams(location.search);
+  const searchTerm = queryParams.get("query");
+  const searchType = queryParams.get("type") || "multi"; // Default to "All"
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
   return (
     <Breadcrumbs aria-label="breadcrumb" sx={{ marginBottom: 2, display: 'flex', alignItems: 'center' }} separator="/">
+      {/* Home Link */}
       <Link 
         color="inherit" 
         onClick={() => navigate("/")} 
@@ -20,6 +24,15 @@ const BreadcrumbNav = ({ movieTitle }) => {
       >
         Home
       </Link>
+
+      {/* Search Term in Breadcrumb when on Results Page */}
+      {pathSegments.includes("results") && searchTerm && (
+        <Typography color="textPrimary" tabIndex={0} aria-current="page">
+          Search Term: {searchTerm} ({searchType === "multi" ? "All" : searchType === "movie" ? "Movie" : "TV Show"})
+        </Typography>
+      )}
+
+      {/* Movie Title in Breadcrumb when in Recommendations */}
       {pathSegments.includes("recommendations") && movieTitle && (
         <Link 
           color="inherit" 
@@ -32,8 +45,12 @@ const BreadcrumbNav = ({ movieTitle }) => {
           {movieTitle} {media_type === "tv" ? "(TV Show)" : "(Movie)"}
         </Link>
       )}
+
+      {/* Final Breadcrumb for Recommendations Page */}
       {pathSegments.includes("recommendations") && (
-        <Typography color="textPrimary" tabIndex={0} aria-current="page">Recommendations</Typography>
+        <Typography color="textPrimary" tabIndex={0} aria-current="page">
+          Details
+        </Typography>
       )}
     </Breadcrumbs>
   );

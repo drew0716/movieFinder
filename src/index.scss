@@ -5,16 +5,19 @@
   box-sizing: border-box;
 }
 
-// Dark mode variables
-$dark-bg: #121212;
-$dark-text: #ffffff;
-$light-bg: #ffffff;
-$light-text: #000000;
+// Color Variables
+$dark-bg: #181818;
+$dark-text: #e0e0e0;
+$light-bg: #f4f4f4;  // Softer light background instead of pure white
+$light-text: #1a1a1a;
+$primary-color: #ffcc00;
+$secondary-color: #ff5733;
 
+// Global Styling
 body {
-  font-family: Arial, sans-serif;
-  transition: background 0.3s ease-in-out;
-  
+  font-family: "Poppins", sans-serif;
+  transition: background 0.3s ease-in-out, color 0.3s ease-in-out;
+
   &.dark-mode {
     background-color: $dark-bg;
     color: $dark-text;
@@ -31,22 +34,45 @@ body {
   z-index: 1000;
   position: fixed;
   width: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
 }
 
-// Page container should be positioned correctly under the AppBar
+// Page container prevents content from being hidden under AppBar
 .page-container {
-  margin-top: 80px; // Prevents content from overlapping with the AppBar
+  margin-top: 80px;
   padding: 0;
 }
 
-// Search bar
-.search-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+// 🎬 Movie Card Styling
+.movie-card {
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  margin-bottom: 10px;
+
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px 12px 0 0;
+  }
 }
 
-// Ensure grid layout is centered
+// Movie Cards Dark Mode Adjustments
+body.dark-mode .movie-card {
+  background: #252525;
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+// 🔄 Masonry Grid Centering
 .movie-masonry-grid {
   display: flex;
   justify-content: center;

@@ -1,0 +1,82 @@
+/* Scrollable Cast Container */
+.cast-scroll-container {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px;
+    gap: 10px; /* Space between items */
+    scrollbar-width: none; /* Hide scrollbar by default */
+    position: relative;
+    cursor: grab;
+    transition: mask 0.3s ease-in-out, -webkit-mask 0.3s ease-in-out;
+  }
+  
+  /* Show scrollbar when hovering */
+  .cast-scroll-container:hover {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+  }
+  
+  /* Webkit Scrollbar (for Chrome, Safari) */
+  .cast-scroll-container::-webkit-scrollbar {
+    height: 8px;
+    background: transparent;
+  }
+  
+  .cast-scroll-container:hover::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .cast-scroll-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+  }
+  
+  .cast-scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  /* Individual Cast Cards */
+  .cast-card {
+    flex: 0 0 120px; /* Keeps consistent size */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #222;
+    color: white;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out, outline 0.2s ease-in-out;
+    outline: none;
+  }
+  
+  .cast-card:focus {
+    outline: 2px solid white; /* Adds focus outline for accessibility */
+  }
+  
+  .cast-card:hover {
+    transform: scale(1.1);
+  }
+  
+  /* Square Images */
+  .cast-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 10px;
+  }
+  
+  /* Actor Name */
+  .cast-name {
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 8px;
+  }
+  
+  /* Actor Role */
+  .cast-role {
+    font-size: 12px;
+    text-align: center;
+    opacity: 0.8;
+  }
+  
