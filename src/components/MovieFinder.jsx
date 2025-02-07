@@ -17,14 +17,31 @@ const MovieFinder = () => {
   const fetchUpcomingMovies = async (pageNum) => {
     try {
       const today = new Date().toISOString().split("T")[0];
-      const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&region=US&sort_by=release_date.asc&release_date.gte=${today}&page=${pageNum}`);
+      const response = await fetch(
+        `${BASE_URL}/discover/movie?api_key=${API_KEY}&language=en-US&region=US&sort_by=release_date.asc&primary_release_date.gte=${today}&page=${pageNum}`
+      );
       const data = await response.json();
-      const filteredMovies = (data.results || []).filter(movie => new Date(movie.release_date) >= new Date());
+  
+      if (!data.results || data.results.length === 0) {
+        console.warn("No upcoming movies found.");
+        return;
+      }
+  
+      console.log("Fetched upcoming movies:", data.results); // Debugging log
+  
+      const filteredMovies = data.results
+        .map((movie) => ({
+          ...movie,
+          overview: movie.overview ? movie.overview.split(" ").slice(0, 10).join(" ") + "..." : "No summary available.",
+        }))
+        .filter((movie) => movie.poster_path && movie.release_date);
+  
       setUpcomingMovies((prevMovies) => [...prevMovies, ...filteredMovies]);
     } catch (error) {
       console.error("Error fetching upcoming movies:", error);
     }
   };
+  
 
   useEffect(() => {
     fetchUpcomingMovies(page);
@@ -66,9 +83,8 @@ const MovieFinder = () => {
       </Box>
 
       {/* Upcoming Movies Section */}
-      <Box className="movie-sections">
-        <Typography variant="h5" className="section-title">📅 Upcoming Movies</Typography>
-        <MovieSection title="Upcoming Movies" movies={upcomingMovies} lastMovieRef={lastMovieElementRef} layoutStyle="detailed" />
+      <Box className="movie-sections" sx={{ display: "flex", flexDirection: "column", gap: 2, "& .MuiCardMedia-root": { objectFit: "cover", height: "100%" } }}>
+        <MovieSection title="📅 Upcoming Movies" movies={upcomingMovies} lastMovieRef={lastMovieElementRef} layoutStyle="modern" />
       </Box>
     </Container>
   );
