@@ -199,14 +199,18 @@ const Recommendations = () => {
       <CastList mediaType={media_type} movieId={id} />
 
       {/* Similar Titles Section */}
-      <Typography variant="h4" sx={{ marginTop: 4 }}>Similar Titles</Typography>
-      <Masonry breakpointCols={{ default: 6, 1200: 6, 900: 4, 600: 2, 400: 1 }} className="movie-masonry-grid" columnClassName="movie-masonry-column">
-        {recommendations.map((movie) => (
-          <Card key={movie.id} onClick={() => navigate(`/recommendations/${movie.media_type}/${movie.id}`)} sx={{ cursor: "pointer" }}>
-            <CardMedia component="img" image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title || movie.name} />
-          </Card>
-        ))}
-      </Masonry>
+      {recommendations.length > 0 && (
+      <div>
+        <Typography variant="h4" sx={{ marginTop: 4 }}>Similar Titles</Typography>
+        <Masonry breakpointCols={{ default: 6, 1200: 6, 900: 4, 600: 2, 400: 1 }} className="movie-masonry-grid" columnClassName="movie-masonry-column">
+          {recommendations.map((movie) => (
+            <Card key={movie.id} onClick={() => navigate(`/recommendations/${movie.media_type}/${movie.id}`)} sx={{ cursor: "pointer" }}>
+              <CardMedia component="img" image={`https://image.tmdb.org/t/p/w500${movie.poster_path}`} alt={movie.title || movie.name} />
+            </Card>
+          ))}
+        </Masonry>
+      </div>
+      )}
     </Container>
   );
 };

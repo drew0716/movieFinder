@@ -15,9 +15,10 @@ const ResultsPage = () => {
   const navigate = useNavigate();
   const queryParams = new URLSearchParams(location.search);
   const searchTerm = queryParams.get("query") || "";
-  const searchType = queryParams.get("type") || "multi"; // Default to "All"
+  const searchType = queryParams.get("type") || "multi";
   const [results, setResults] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [similarMovies, setSimilarMovies] = useState([]);
 
   useEffect(() => {
     if (!searchTerm) return;
@@ -37,16 +38,32 @@ const ResultsPage = () => {
     fetchSearchResults();
   }, [searchTerm, searchType]);
 
+  useEffect(() => {
+    if (!selectedMovie) return;
+
+    const fetchSimilarMovies = async () => {
+      try {
+        const response = await fetch(
+          `${BASE_URL}/movie/${selectedMovie.id}/similar?api_key=${API_KEY}&language=en-US`
+        );
+        const data = await response.json();
+        setSimilarMovies((data.results || []).filter(movie => movie.poster_path));
+      } catch (error) {
+        console.error("Error fetching similar movies:", error);
+      }
+    };
+
+    fetchSimilarMovies();
+  }, [selectedMovie]);
+
   return (
     <Container>
       <BreadcrumbNav />
       
-      {/* Search Header */}
       <Typography variant="h4" sx={{ marginBottom: 3, textAlign: "center" }}>
         Search Results for "{searchTerm}" ({searchType === "multi" ? "All" : searchType === "movie" ? "Movies" : "TV Shows"})
       </Typography>
 
-      {/* Results Masonry Grid */}
       <Masonry
         breakpointCols={{ default: 6, 1200: 6, 900: 4, 600: 2, 400: 1 }}
         className="movie-masonry-grid"
@@ -63,33 +80,23 @@ const ResultsPage = () => {
         )}
       </Masonry>
 
-      {/* Movie Details Modal */}
-      <Dialog open={Boolean(selectedMovie)} onClose={() => setSelectedMovie(null)} fullWidth>
-        {selectedMovie && (
-          <>
-            <DialogTitle>{selectedMovie.title || selectedMovie.name}</DialogTitle>
-            <DialogContent>
-              {selectedMovie.poster_path && (
-                <CardMedia
-                  component="img"
-                  style={{ width: "100%", height: "auto" }}
-                  image={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
-                  alt={selectedMovie.title || selectedMovie.name}
-                />
-              )}
-              <Typography variant="body1" sx={{ marginTop: 2 }}>{selectedMovie.overview}</Typography>
-              <Button 
-                variant="contained" 
-                color="secondary" 
-                sx={{ marginTop: 2 }} 
-                onClick={() => navigate(`/recommendations/${selectedMovie.media_type}/${selectedMovie.id}`)}
-              >
-                View Similar
-              </Button>
-            </DialogContent>
-          </>
-        )}
-      </Dialog>
+      {/* Hide Similar Titles Section if None Available */}
+      {similarMovies.length > 0 && (
+        <Box sx={{ marginTop: 4 }}>
+          <Typography variant="h5" sx={{ fontWeight: "bold", marginBottom: 2 }}>
+            Similar Titles
+          </Typography>
+          <Masonry
+            breakpointCols={{ default: 6, 1200: 6, 900: 4, 600: 2, 400: 1 }}
+            className="movie-masonry-grid"
+            columnClassName="movie-masonry-column"
+          >
+            {similarMovies.map((movie) => (
+              <MovieGrid key={movie.id} results={[movie]} navigate={navigate} />
+            ))}
+          </Masonry>
+        </Box>
+      )}
     </Container>
   );
 };
